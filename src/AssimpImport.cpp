@@ -16,7 +16,9 @@ std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, c
 	{
 		aiString name;
 		mat->GetTexture(type, i, &name);
-		std::filesystem::path texPath = modelPath.parent_path() / name.C_Str();
+        std::string fixName = std::string(name.C_Str());
+        std::replace( fixName.begin(), fixName.end(), '\\', '/');
+        std::filesystem::path texPath = modelPath.parent_path() / fixName;
 
 		auto existing = loadedTextures.find(texPath);
 		if (existing != loadedTextures.end()) {
@@ -50,10 +52,8 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
 		auto& normal = mesh->mNormals[i];
 
 		// See above.
-
-
-
-
+        vertices.push_back({meshVertex.x, meshVertex.y, meshVertex.z,  normal.x, normal.y, normal.z,
+                            texCoord.x, texCoord.y });
 	}
 
 	std::vector<uint32_t> faces;
@@ -65,9 +65,9 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
 	for (size_t i = 0; i < mesh->mNumFaces; i++) {
 		auto& meshFace = mesh->mFaces[i];
 		// See above.
-
-
-
+        faces.push_back(meshFace.mIndices[0]);
+        faces.push_back(meshFace.mIndices[1]);
+        faces.push_back(meshFace.mIndices[2]);
 	}
 
 	// Load any base textures, specular maps, and normal maps associated with the mesh.
