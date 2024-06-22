@@ -175,7 +175,24 @@ Scene lifeOfPi() {
 	return scene;
 }
 
+Scene bass() {
+    Scene scene{ texturingShader() };
 
+    auto bass = assimpLoad("models/bass/scene.gltf", true);
+    bass.grow(glm::vec3(9, 9, 9));
+    bass.move(glm::vec3(0, 0, 0));
+
+    scene.objects.push_back(std::move(bass));
+
+    Animator spinBass;
+    // Spin the bunny 360 degrees over 10 seconds.
+    spinBass.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 10.0, glm::vec3(0, 2 * M_PI, 0)));
+
+    // Move all animators into the scene's animators list.
+    scene.animators.push_back(std::move(spinBass));
+
+    return scene;
+}
 
 int main() {
 	
@@ -193,8 +210,8 @@ int main() {
 	gladLoadGL();
 	glEnable(GL_DEPTH_TEST);
 
-	// Inintialize scene objects.
-	auto myScene = lifeOfPi();
+	// Initialize scene objects.
+	auto myScene = bass();
 	// You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
