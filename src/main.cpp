@@ -176,7 +176,7 @@ Scene lifeOfPi() {
 }
 
 Scene bass() {
-    Scene scene{ texturingShader() };
+    Scene scene{ phongLightingShader() };
 
     auto bass = assimpLoad("models/bass/scene.gltf", true);
     bass.grow(glm::vec3(9, 9, 9));
@@ -191,6 +191,11 @@ Scene bass() {
     // Move all animators into the scene's animators list.
     scene.animators.push_back(std::move(spinBass));
 
+    // Why does setUniform not work here? Needs to be in main method for phong shader to work
+    /*scene.program.setUniform("directionalLight", glm::vec3(0, 1, 0));
+    scene.program.setUniform("directionalColor", glm::vec3(1, 1, 1));
+    scene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
+    scene.program.setUniform("material", glm::vec4(1, 1, 1, 1));*/
     return scene;
 }
 
@@ -224,9 +229,14 @@ int main() {
 	glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 	myScene.program.setUniform("view", camera);
 	myScene.program.setUniform("projection", perspective);
-	myScene.program.setUniform("cameraPos", cameraPos);
+	myScene.program.setUniform("cameraPos", cameraPos); // I don't know where this is used
+    myScene.program.setUniform("viewPos", cameraPos);
+    myScene.program.setUniform("directionalLight", glm::vec3(0, 0, -1));
+    myScene.program.setUniform("directionalColor", glm::vec3(1, 1, 1));
+    myScene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
+    myScene.program.setUniform("material", glm::vec4(0.1, 1, 1, 10));
 
-	// Ready, set, go!
+    // Ready, set, go!
 	bool running = true;
 	sf::Clock c;
 	auto last = c.getElapsedTime();
