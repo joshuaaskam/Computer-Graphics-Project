@@ -2,6 +2,7 @@
 #include <memory>
 #include "Animation.h"
 #include "RotationAnimation.h"
+#include "TranslationAnimation.h"
 
 class Animator {
 private:

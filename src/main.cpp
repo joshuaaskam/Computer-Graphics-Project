@@ -180,15 +180,13 @@ Scene bass() {
 
     auto bass = assimpLoad("models/bass/scene.gltf", true);
     bass.grow(glm::vec3(9, 9, 9));
-    bass.move(glm::vec3(0, 0, 0));
+    bass.move(glm::vec3(0, 0, -10));
 
     scene.objects.push_back(std::move(bass));
 
     Animator spinBass;
-    // Spin the bunny 360 degrees over 10 seconds.
-    spinBass.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 10.0, glm::vec3(0, 2 * M_PI, 0)));
+    spinBass.addAnimation(std::make_unique<TranslationAnimation>(scene.objects[0], 5.0, glm::vec3(0, 0, 12)));
 
-    // Move all animators into the scene's animators list.
     scene.animators.push_back(std::move(spinBass));
 
     // Why does setUniform not work here? Needs to be in main method for phong shader to work
