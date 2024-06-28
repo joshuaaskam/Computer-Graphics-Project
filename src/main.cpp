@@ -182,19 +182,15 @@ Scene lake() {
     std::vector<Texture> textures = {
             loadTexture("models/lake.jpg", "baseTexture"),
     };
-    /*auto water = Mesh3D::square(textures);
+    auto water = Mesh3D::square(textures);
     auto lake = Object3D(std::vector<Mesh3D>{water});
     lake.rotate(glm::vec3(-M_PI/2, 0, 0));
-    //lake.move(glm::vec3(0, -1.5, 0));
-    lake.grow(glm::vec3(5, 5, 5));
-    scene.objects.push_back(lake);*/
+    lake.grow(glm::vec3(11, 11, 11));
+    scene.objects.push_back(lake);
     auto cliff = assimpLoad("models/cliff/Cliff.obj", true);
-    //cliff.grow(glm::vec3(5, 5, 5));
-    cliff.move(glm::vec3(0, 0, 0));
-    // Move the tiger to be a child of the boat.
-    //boat.addChild(std::move(tiger));
+    cliff.move(glm::vec3(0, -1, -5));
+    cliff.grow(glm::vec3(2, 1, 1));
 
-    // Move the boat into the scene list.
     scene.objects.push_back(std::move(cliff));
 
     return scene;
@@ -242,9 +238,14 @@ int main() {
 	myScene.program.activate();
 
 	// Set up the view and projection matrices.
-	glm::vec3 cameraPos = glm::vec3(0, 10, 0);
-	glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 0, -1));
-	glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
+    // Top View
+	//glm::vec3 cameraPos = glm::vec3(0, 15, 0);
+    //glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 0, -1));
+    // Front view
+    glm::vec3 cameraPos = glm::vec3(0, 0.5, 5);
+    glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+    glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 	myScene.program.setUniform("view", camera);
 	myScene.program.setUniform("projection", perspective);
 	myScene.program.setUniform("cameraPos", cameraPos); // I don't know where this is used
