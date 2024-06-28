@@ -182,19 +182,20 @@ Scene lake() {
     std::vector<Texture> textures = {
             loadTexture("models/lake.jpg", "baseTexture"),
     };
-    auto water = Mesh3D::square(textures);
+    /*auto water = Mesh3D::square(textures);
     auto lake = Object3D(std::vector<Mesh3D>{water});
     lake.rotate(glm::vec3(-M_PI/2, 0, 0));
-    lake.move(glm::vec3(0, 0, 0));
-    lake.grow(glm::vec3(20, 20, 20));
-    scene.objects.push_back(lake);
-    //auto tiger = assimpLoad("models/tiger/scene.gltf", true);
-    //tiger.move(glm::vec3(0, -5, 10));
+    //lake.move(glm::vec3(0, -1.5, 0));
+    lake.grow(glm::vec3(5, 5, 5));
+    scene.objects.push_back(lake);*/
+    auto cliff = assimpLoad("models/cliff/Cliff.obj", true);
+    //cliff.grow(glm::vec3(5, 5, 5));
+    cliff.move(glm::vec3(0, 0, 0));
     // Move the tiger to be a child of the boat.
     //boat.addChild(std::move(tiger));
 
     // Move the boat into the scene list.
-    //scene.objects.push_back(std::move(boat));
+    scene.objects.push_back(std::move(cliff));
 
     return scene;
 }
@@ -213,11 +214,6 @@ Scene bass() {
 
     scene.animators.push_back(std::move(moveBass));
 
-    // Why does setUniform not work here? Needs to be in main method for phong shader to work
-    /*scene.program.setUniform("directionalLight", glm::vec3(0, 1, 0));
-    scene.program.setUniform("directionalColor", glm::vec3(1, 1, 1));
-    scene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
-    scene.program.setUniform("material", glm::vec4(1, 1, 1, 1));*/
     return scene;
 }
 
