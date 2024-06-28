@@ -175,6 +175,30 @@ Scene lifeOfPi() {
 	return scene;
 }
 
+Scene lake() {
+    // This scene is more complicated; it has child objects, as well as animators.
+    Scene scene{phongLightingShader()};
+
+    std::vector<Texture> textures = {
+            loadTexture("models/lake.jpg", "baseTexture"),
+    };
+    auto water = Mesh3D::square(textures);
+    auto lake = Object3D(std::vector<Mesh3D>{water});
+    lake.rotate(glm::vec3(-M_PI/2, 0, 0));
+    lake.move(glm::vec3(0, 0, 0));
+    lake.grow(glm::vec3(20, 20, 20));
+    scene.objects.push_back(lake);
+    //auto tiger = assimpLoad("models/tiger/scene.gltf", true);
+    //tiger.move(glm::vec3(0, -5, 10));
+    // Move the tiger to be a child of the boat.
+    //boat.addChild(std::move(tiger));
+
+    // Move the boat into the scene list.
+    //scene.objects.push_back(std::move(boat));
+
+    return scene;
+}
+
 Scene bass() {
     Scene scene{ phongLightingShader() };
 
@@ -184,10 +208,10 @@ Scene bass() {
 
     scene.objects.push_back(std::move(bass));
 
-    Animator spinBass;
-    spinBass.addAnimation(std::make_unique<TranslationAnimation>(scene.objects[0], 5.0, glm::vec3(0, 0, 12)));
+    Animator moveBass;
+    moveBass.addAnimation(std::make_unique<TranslationAnimation>(scene.objects[0], 5.0, glm::vec3(0, 0, 12)));
 
-    scene.animators.push_back(std::move(spinBass));
+    scene.animators.push_back(std::move(moveBass));
 
     // Why does setUniform not work here? Needs to be in main method for phong shader to work
     /*scene.program.setUniform("directionalLight", glm::vec3(0, 1, 0));
@@ -214,7 +238,7 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	// Initialize scene objects.
-	auto myScene = bass();
+	auto myScene = lake();
 	// You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
@@ -222,14 +246,14 @@ int main() {
 	myScene.program.activate();
 
 	// Set up the view and projection matrices.
-	glm::vec3 cameraPos = glm::vec3(0, 0, 5);
-	glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::vec3 cameraPos = glm::vec3(0, 10, 0);
+	glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 0, -1));
 	glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 	myScene.program.setUniform("view", camera);
 	myScene.program.setUniform("projection", perspective);
 	myScene.program.setUniform("cameraPos", cameraPos); // I don't know where this is used
     myScene.program.setUniform("viewPos", cameraPos);
-    myScene.program.setUniform("directionalLight", glm::vec3(0, 0, -1));
+    myScene.program.setUniform("directionalLight", glm::vec3(0, -1, 0));
     myScene.program.setUniform("directionalColor", glm::vec3(1, 1, 1));
     myScene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
     myScene.program.setUniform("material", glm::vec4(0.1, 1, 1, 10));
