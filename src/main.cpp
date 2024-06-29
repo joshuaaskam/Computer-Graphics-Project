@@ -262,11 +262,11 @@ int main() {
 
 	// Set up the view and projection matrices.
     // Top View
-	//glm::vec3 cameraPos = glm::vec3(0, 15, 0);
-    //glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 0, -1));
+	glm::vec3 cameraPos = glm::vec3(0, 15, 0);
+    glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 0, -1));
     // flat view outside lake
-    glm::vec3 cameraPos = glm::vec3(0, 0.5, 15);
-    glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    //glm::vec3 cameraPos = glm::vec3(0, 0.5, 15);
+    //glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
     //View looking inside from front right corner
     //glm::vec3 cameraPos = glm::vec3(7, 6, 7);
@@ -312,6 +312,7 @@ int main() {
 
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.65f, 0.8f, 0.92f, 1.0f); // set the background to sky color
 		// Render the scene objects.
 		for (auto& o : myScene.objects) {
 			o.render(myScene.program);
