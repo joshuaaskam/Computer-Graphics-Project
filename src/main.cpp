@@ -187,11 +187,34 @@ Scene lake() {
     lake.rotate(glm::vec3(-M_PI/2, 0, 0));
     lake.grow(glm::vec3(11, 11, 11));
     scene.objects.push_back(lake);
-    auto cliff = assimpLoad("models/cliff/Cliff.obj", true);
-    cliff.move(glm::vec3(0, -1, -5));
-    cliff.grow(glm::vec3(2, 1, 1));
 
-    scene.objects.push_back(std::move(cliff));
+    auto cliff1 = assimpLoad("models/cliff/Cliff.obj", true);
+    cliff1.move(glm::vec3(0, -2, -5));
+    cliff1.grow(glm::vec3(3, 1.5, 1));
+    scene.objects.push_back(std::move(cliff1));
+
+    auto cliff2 = assimpLoad("models/cliff/Cliff.obj", true);
+    cliff2.move(glm::vec3(5, -2, 0));
+    cliff2.grow(glm::vec3(3, 1.5, 1));
+    cliff2.rotate(glm::vec3(0, -M_PI/2, 0));
+    scene.objects.push_back(std::move(cliff2));
+
+    auto cliff3 = assimpLoad("models/cliff/Cliff.obj", true);
+    cliff3.move(glm::vec3(-5, -2, 0));
+    cliff3.grow(glm::vec3(3, 1.5, 1));
+    cliff3.rotate(glm::vec3(0, -M_PI/2, 0));
+    scene.objects.push_back(std::move(cliff3));
+
+    auto cliff4 = assimpLoad("models/cliff/Cliff.obj", true);
+    cliff4.move(glm::vec3(0, -2, 5));
+    cliff4.grow(glm::vec3(3, 1.5, 1));
+    cliff4.rotate(glm::vec3(0, M_PI, 0));
+    scene.objects.push_back(std::move(cliff4));
+
+    auto lakeBottom = assimpLoad("models/Rock_terrain/Rock_terrain_retopo.obj", true);
+    lakeBottom.move(glm::vec3(.5, -2.3, .5));
+    lakeBottom.grow(glm::vec3(1.4, 1.4, 1.4));
+    scene.objects.push_back(std::move(lakeBottom));
 
     return scene;
 }
@@ -241,9 +264,13 @@ int main() {
     // Top View
 	//glm::vec3 cameraPos = glm::vec3(0, 15, 0);
     //glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 0, -1));
-    // Front view
-    glm::vec3 cameraPos = glm::vec3(0, 0.5, 5);
+    // flat view outside lake
+    glm::vec3 cameraPos = glm::vec3(0, 0.5, 15);
     glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+    //View looking inside from front right corner
+    //glm::vec3 cameraPos = glm::vec3(7, 6, 7);
+    //glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 3, 0), glm::vec3(0, 1, 0));
 
     glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 	myScene.program.setUniform("view", camera);
