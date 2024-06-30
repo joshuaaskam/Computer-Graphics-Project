@@ -64,7 +64,7 @@ ShaderProgram texturingShader() {
 ShaderProgram waterShader() {
     ShaderProgram shader;
     try {
-        shader.load("shaders/water.vert", "shaders/water.frag");
+        shader.load("shaders/light_perspective.vert", "shaders/water.frag");
     }
     catch (std::runtime_error& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
@@ -188,9 +188,19 @@ Scene lifeOfPi() {
 	return scene;
 }
 
-Scene water() {
-    Scene scene{phongLightingShader()};
+Scene water(WaterFrameBuffers waterFrameBuffers) {
+    Scene scene{waterShader()};
+    std::vector<Texture> textures = {
+            Texture{waterFrameBuffers.getReflectionTexture(), "reflectionTexture"},
+            Texture{waterFrameBuffers.getRefractionTexture(), "refractionTexture"},
+    };
+    auto water = Mesh3D::square({});
+    auto lake = Object3D(std::vector<Mesh3D>{water});
+    lake.rotate(glm::vec3(-M_PI/2, 0, 0));
+    lake.grow(glm::vec3(11, 11, 11));
+    scene.objects.push_back(lake);
 
+    return scene;
 }
 
 Scene lake() {
@@ -200,11 +210,11 @@ Scene lake() {
     std::vector<Texture> textures = {
             loadTexture("models/lake.jpg", "baseTexture"),
     };
-    auto water = Mesh3D::square(textures);
+    /*auto water = Mesh3D::square(textures);
     auto lake = Object3D(std::vector<Mesh3D>{water});
     lake.rotate(glm::vec3(-M_PI/2, 0, 0));
     lake.grow(glm::vec3(11, 11, 11));
-    scene.objects.push_back(lake);
+    scene.objects.push_back(lake);*/
 
     auto cliff1 = assimpLoad("models/cliff/Cliff.obj", true);
     cliff1.move(glm::vec3(0, -2, -5));
@@ -272,7 +282,9 @@ int main() {
 
     // Initialize scene objects.
 	auto myScene = lake();
-	// You can directly access specific objects in the scene using references.
+    WaterFrameBuffers fbos = WaterFrameBuffers();
+    auto lake = water(fbos);
+    // You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
 	// Activate the shader program.
@@ -302,6 +314,15 @@ int main() {
     myScene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
     myScene.program.setUniform("material", glm::vec4(0.1, 1, 1, 10));
 
+    lake.program.activate();
+    lake.program.setUniform("view", camera);
+    lake.program.setUniform("projection", perspective);
+    lake.program.setUniform("viewPos", cameraPos);
+
+    myScene.program.activate();
+
+    //WaterFrameBuffers fbos = WaterFrameBuffers();
+
     // Ready, set, go!
 	bool running = true;
 	sf::Clock c;
@@ -311,8 +332,6 @@ int main() {
 	for (auto& anim : myScene.animators) {
 		anim.start();
 	}
-
-    WaterFrameBuffers fbos = WaterFrameBuffers();
 
 	while (running) {
 		
@@ -324,7 +343,7 @@ int main() {
 		}
 		auto now = c.getElapsedTime();
 		auto diff = now - last;
-		std::cout << 1 / diff.asSeconds() << " FPS " << std::endl;
+		//std::cout << 1 / diff.asSeconds() << " FPS " << std::endl;
 		last = now;
 
 		// Update the scene.
@@ -366,7 +385,21 @@ int main() {
         glDisable(GL_CLIP_DISTANCE0);
         for (auto& o : myScene.objects) {
 			o.render(myScene.program);
-		}
+        }
+
+        // Render the water
+        lake.program.activate();
+        //lake.program.setUniform("reflectionTexture", 0);
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, fbos.getReflectionTexture());
+        //lake.program.setUniform("refractionTexture", 1);
+        //glActiveTexture(GL_TEXTURE1);
+        //glBindTexture(GL_TEXTURE_2D, fbos.getRefractionTexture());
+        lake.objects[0].render(lake.program);
+
+        // reactivate main shader
+        myScene.program.activate();
+
 		window.display();
 
 
