@@ -61,6 +61,18 @@ ShaderProgram texturingShader() {
 	return shader;
 }
 
+ShaderProgram waterShader() {
+    ShaderProgram shader;
+    try {
+        shader.load("shaders/water.vert", "shaders/water.frag");
+    }
+    catch (std::runtime_error& e) {
+        std::cout << "ERROR: " << e.what() << std::endl;
+        exit(1);
+    }
+    return shader;
+}
+
 /**
  * @brief Loads an image from the given path into an OpenGL texture.
  */
@@ -176,6 +188,11 @@ Scene lifeOfPi() {
 	return scene;
 }
 
+Scene water() {
+    Scene scene{phongLightingShader()};
+
+}
+
 Scene lake() {
     // This scene is more complicated; it has child objects, as well as animators.
     Scene scene{phongLightingShader()};
@@ -253,7 +270,7 @@ int main() {
 	gladLoadGL();
 	glEnable(GL_DEPTH_TEST);
 
-	// Initialize scene objects.
+    // Initialize scene objects.
 	auto myScene = lake();
 	// You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
@@ -264,7 +281,9 @@ int main() {
 	// Set up the view and projection matrices.
     // Top View
 	glm::vec3 cameraPos = glm::vec3(0, 15, 0);
-    glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 0, -1));
+    glm::vec3 center = glm::vec3(0, 0, 0);
+    glm::vec3 up = glm::vec3(0, 0, -1);
+    glm::mat4 camera = glm::lookAt(cameraPos, center, up);
     // flat view outside lake
     //glm::vec3 cameraPos = glm::vec3(0, 0.5, 15);
     //glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
@@ -317,15 +336,35 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.65f, 0.8f, 0.92f, 1.0f); // set the background to sky color
 
+        glEnable(GL_CLIP_DISTANCE0);
         // Will not have visual changes, just renders to the frame buffer
+        // Render reflection texture
         fbos.bindReflectionFrameBuffer();
+        float distance = 2 * cameraPos.y;
+        cameraPos.y -= distance; // change the camera position to be below the water
+        camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
+        myScene.program.setUniform("plane", glm::vec4(0, 1, 0, 0));
+        myScene.program.setUniform("view", camera);
         for (auto& o : myScene.objects) {
             o.render(myScene.program);
         }
+        // Undo the camera position change
+        cameraPos.y += distance;
+        camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
+        myScene.program.setUniform("view", camera);
+
+        // Render refraction texture
+        fbos.bindRefractionFrameBuffer();
+        myScene.program.setUniform("plane", glm::vec4(0, -1, 0, 0));
+        for (auto& o : myScene.objects) {
+            o.render(myScene.program);
+        }
+
         fbos.unbindCurrentFrameBuffer(); // switch back to default frame buffer
 
 		// Render the scene objects.
-		for (auto& o : myScene.objects) {
+        glDisable(GL_CLIP_DISTANCE0);
+        for (auto& o : myScene.objects) {
 			o.render(myScene.program);
 		}
 		window.display();

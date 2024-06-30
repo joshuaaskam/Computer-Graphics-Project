@@ -8,6 +8,7 @@ layout (location=2) in vec2 vTexCoord;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+uniform vec4 plane;
 
 out vec2 TexCoord;
 out vec3 Normal;
@@ -24,4 +25,6 @@ void main() {
     
     // TODO: transform the vertex position into world space, and assign it to FragWorldPos.
     FragWorldPos = vec3(model * vec4(vPosition, 1.0));
+
+    gl_ClipDistance[0] = dot(model * vec4(vPosition, 1.0), plane);
 }
