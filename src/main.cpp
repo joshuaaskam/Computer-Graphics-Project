@@ -20,6 +20,7 @@ We now transform local space vertices to clip space using uniform matrices in th
 #include "Object3D.h"
 #include "Animator.h"
 #include "ShaderProgram.h"
+#include "Water/WaterFrameBuffers.h"
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Window.hpp>
 
@@ -292,6 +293,8 @@ int main() {
 		anim.start();
 	}
 
+    WaterFrameBuffers fbos = WaterFrameBuffers();
+
 	while (running) {
 		
 		sf::Event ev;
@@ -313,6 +316,14 @@ int main() {
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.65f, 0.8f, 0.92f, 1.0f); // set the background to sky color
+
+        // Will not have visual changes, just renders to the frame buffer
+        fbos.bindReflectionFrameBuffer();
+        for (auto& o : myScene.objects) {
+            o.render(myScene.program);
+        }
+        fbos.unbindCurrentFrameBuffer(); // switch back to default frame buffer
+
 		// Render the scene objects.
 		for (auto& o : myScene.objects) {
 			o.render(myScene.program);
