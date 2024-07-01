@@ -338,11 +338,12 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
 // Render commands will no longer render to the screen.
+    // checks if frame buffer is working.
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 
 // Generate and bind a custom framebuffer.
-    /*uint32_t myFbo2;
+    uint32_t myFbo2;
     glGenFramebuffers(1, &myFbo2);
     glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
 // Render commands will no longer render to the screen.
@@ -353,11 +354,11 @@ int main() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1200, 800, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, refractionBufferId, 0);
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) // SOMETHING WRONG HERE!
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;*/
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractionBufferId, 0);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 
-    auto lake = water(reflectionBufferId, reflectionBufferId);
+    auto lake = water(reflectionBufferId, refractionBufferId);
 
     lake.program.activate();
     lake.program.setUniform("view", camera);
@@ -380,7 +381,7 @@ int main() {
 	for (auto& anim : myScene.animators) {
 		anim.start();
 	}
-
+    glEnable(GL_CULL_FACE);
 	while (running) {
 		
 		sf::Event ev;
@@ -412,7 +413,7 @@ int main() {
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
         float distance = 2 * cameraPos.y;
-        //cameraPos.y -= distance; // change the camera position to be below the water
+        cameraPos.y -= distance; // change the camera position to be below the water
         camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
         myScene.program.setUniform("plane", glm::vec4(0, 1, 0, 0));
         myScene.program.setUniform("view", camera);
@@ -420,21 +421,25 @@ int main() {
             o.render(myScene.program);
         }
         // Undo the camera position change
-        //cameraPos.y += distance;
+        cameraPos.y += distance;
         camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
         myScene.program.setUniform("view", camera);
 
         // Render refraction texture
         //fbos.bindRefractionFrameBuffer();
-        //glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
-        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, refractionBufferId, 0);
-        //myScene.program.setUniform("plane", glm::vec4(0, -1, 0, 0));
-        //for (auto& o : myScene.objects) {
-        //    o.render(myScene.program);
-        //}
+        glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractionBufferId, 0);
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+        myScene.program.setUniform("plane", glm::vec4(0, -1, 0, 0));
+        for (auto& o : myScene.objects) {
+            o.render(myScene.program);
+        }
 
         //fbos.unbindCurrentFrameBuffer(); // switch back to default frame buffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 
 		// Render the scene objects.
         glDisable(GL_CLIP_DISTANCE0);
@@ -448,8 +453,9 @@ int main() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, reflectionBufferId);
         //glBindTexture(GL_TEXTURE_2D, fbos.getReflectionTexture());
-        //lake.program.setUniform("refractionTexture", 1);
-        //glActiveTexture(GL_TEXTURE1);
+        lake.program.setUniform("refractionTexture", 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, refractionBufferId);
         //glBindTexture(GL_TEXTURE_2D, fbos.getRefractionTexture());
         lake.objects[0].render(lake.program);
 
