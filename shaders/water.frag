@@ -7,6 +7,7 @@ layout (location=0) out vec4 FragColor;
 in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragWorldPos;
+in vec4 ClipSpace;
 
 // Uniforms: MUST BE PROVIDED BY THE APPLICATION.
 
@@ -15,8 +16,12 @@ uniform sampler2D reflectionTexture;
 uniform sampler2D refractionTexture;
 
 void main() {
-    vec4 reflectColor = texture(reflectionTexture, TexCoord);
-    vec4 refractionColor = texture(refractionTexture, TexCoord);
+    vec2 ndc = (ClipSpace.xy/ClipSpace.w)/2.0 + 0.5;
+    vec2 RefractTextCoord = vec2(ndc.x, ndc.y);
+    vec2 ReflectTextCoord = vec2(ndc.x, ndc.y);
+
+    vec4 reflectColor = texture(reflectionTexture, ReflectTextCoord);
+    vec4 refractionColor = texture(refractionTexture, RefractTextCoord);
 
     vec4 color = mix(reflectColor, refractionColor, 0.5);
     if(color.r == 0.0 && color.g == 0.0 && color.b == 0) {

@@ -64,7 +64,7 @@ ShaderProgram texturingShader() {
 ShaderProgram waterShader() {
     ShaderProgram shader;
     try {
-        shader.load("shaders/light_perspective.vert", "shaders/water.frag");
+        shader.load("shaders/water.vert", "shaders/water.frag");
     }
     catch (std::runtime_error& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
@@ -210,11 +210,6 @@ Scene lake() {
     std::vector<Texture> textures = {
             loadTexture("models/lake.jpg", "baseTexture"),
     };
-    /*auto water = Mesh3D::square(textures);
-    auto lake = Object3D(std::vector<Mesh3D>{water});
-    lake.rotate(glm::vec3(-M_PI/2, 0, 0));
-    lake.grow(glm::vec3(11, 11, 11));
-    scene.objects.push_back(lake);*/
 
     auto cliff1 = assimpLoad("models/cliff/Cliff.obj", true);
     cliff1.move(glm::vec3(0, -2, -5));
