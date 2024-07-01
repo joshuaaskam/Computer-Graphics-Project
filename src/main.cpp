@@ -257,10 +257,16 @@ Scene bass() {
     Scene scene{ phongLightingShader() };
 
     auto bass = assimpLoad("models/bass/scene.gltf", true);
-    bass.grow(glm::vec3(4, 4, 4));
-    bass.move(glm::vec3(0, -0.5, 0));
-
+    bass.grow(glm::vec3(7, 7, 7));
+    bass.move(glm::vec3(-4, -1, 0));
+    bass.rotate(glm::vec3(0, M_PI/2, 0));
     scene.objects.push_back(std::move(bass));
+
+    auto duck = assimpLoad("models/duck/source/Yellow rubber duck/Rubbish_Duck.gltf", true);
+    duck.grow(glm::vec3(.25, 0.25, 0.25));
+    duck.rotate(glm::vec3(0, M_PI/4, 0));
+    duck.move(glm::vec3(-3, 0, -3));
+    scene.objects.push_back(std::move(duck));
 
     /*Animator moveBass;
     moveBass.addAnimation(std::make_unique<TranslationAnimation>(scene.objects[0], 5.0, glm::vec3(0, 0, 12)));
@@ -310,7 +316,7 @@ int main() {
     //camera = glm::lookAt(cameraPos, center, up);
 
     // flat view above lake
-    cameraPos = glm::vec3(3, 2, 5);
+    cameraPos = glm::vec3(5, 3, 5);
     center = glm::vec3(0, 0, 0);
     up = glm::vec3(0, 1, 0);
     camera = glm::lookAt(cameraPos, center, up);
@@ -455,7 +461,11 @@ int main() {
         bassScene.program.activate();
         bassScene.program.setUniform("plane", glm::vec4(0, 1, 0, 0));
         bassScene.program.setUniform("view", camera);
-        bassScene.objects[0].render(bassScene.program);
+        for (auto& o : bassScene.objects) {
+            o.render(bassScene.program);
+        }
+        //bassScene.objects[0].render(bassScene.program);
+        //bassScene.objects[1].render(bassScene.program);
         // Undo the camera position change
         cameraPos.y += distance;
         camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
@@ -474,7 +484,11 @@ int main() {
         }
         bassScene.program.activate();
         bassScene.program.setUniform("plane", glm::vec4(0, -1, 0, 0));
-        bassScene.objects[0].render(bassScene.program);
+        for (auto& o : bassScene.objects) {
+            o.render(bassScene.program);
+        }
+        //bassScene.objects[0].render(bassScene.program);
+        //bassScene.objects[1].render(bassScene.program);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -487,7 +501,11 @@ int main() {
 			o.render(myScene.program);
         }
         bassScene.program.activate();
-        bassScene.objects[0].render(bassScene.program);
+        for (auto& o : bassScene.objects) {
+            o.render(bassScene.program);
+        }
+        //bassScene.objects[0].render(bassScene.program);
+        //bassScene.objects[1].render(bassScene.program);
 
         // Render the water
         lake.program.activate();
