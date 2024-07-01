@@ -212,32 +212,37 @@ Scene lake() {
     };
 
     auto cliff1 = assimpLoad("models/cliff/Cliff.obj", true);
-    cliff1.move(glm::vec3(0, -2, -5));
+    cliff1.move(glm::vec3(0, -2.5, -5));
     cliff1.grow(glm::vec3(3, 1.5, 1));
     scene.objects.push_back(std::move(cliff1));
 
     auto cliff2 = assimpLoad("models/cliff/Cliff.obj", true);
-    cliff2.move(glm::vec3(5, -2, 0));
+    cliff2.move(glm::vec3(5, -2.5, 0));
     cliff2.grow(glm::vec3(3, 1.5, 1));
     cliff2.rotate(glm::vec3(0, -M_PI/2, 0));
     scene.objects.push_back(std::move(cliff2));
 
     auto cliff3 = assimpLoad("models/cliff/Cliff.obj", true);
-    cliff3.move(glm::vec3(-5, -2, 0));
+    cliff3.move(glm::vec3(-5, -2.5, 0));
     cliff3.grow(glm::vec3(3, 1.5, 1));
     cliff3.rotate(glm::vec3(0, -M_PI/2, 0));
     scene.objects.push_back(std::move(cliff3));
 
     auto cliff4 = assimpLoad("models/cliff/Cliff.obj", true);
-    cliff4.move(glm::vec3(0, -2, 5));
+    cliff4.move(glm::vec3(0, -2.5, 5));
     cliff4.grow(glm::vec3(3, 1.5, 1));
     cliff4.rotate(glm::vec3(0, M_PI, 0));
     scene.objects.push_back(std::move(cliff4));
 
     auto lakeBottom = assimpLoad("models/Rock_terrain/Rock_terrain_retopo.obj", true);
-    lakeBottom.move(glm::vec3(.5, -2.3, .5));
+    lakeBottom.move(glm::vec3(.5, -2.8, .5));
     lakeBottom.grow(glm::vec3(1.4, 1.4, 1.4));
     scene.objects.push_back(std::move(lakeBottom));
+
+    auto tree = assimpLoad("models/tree/scene.gltf", true);
+    tree.move(glm::vec3(-4, 3.5, -4));
+    //tree.grow(glm::vec3(3, 3, 3));
+    scene.objects.push_back(std::move(tree));
 
     return scene;
 }
@@ -277,8 +282,6 @@ int main() {
 
     // Initialize scene objects.
 	auto myScene = lake();
-    //WaterFrameBuffers fbos = WaterFrameBuffers();
-    //auto lake = water(fbos);
     // You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
@@ -287,17 +290,19 @@ int main() {
 
 	// Set up the view and projection matrices.
     // Top View
-	glm::vec3 cameraPos = glm::vec3(0, 15, 0);
+	glm::vec3 cameraPos = glm::vec3(0, 18, 0);
     glm::vec3 center = glm::vec3(0, 0, 0);
     glm::vec3 up = glm::vec3(0, 0, -1);
     glm::mat4 camera = glm::lookAt(cameraPos, center, up);
     // flat view outside lake
     //cameraPos = glm::vec3(0, 0.5, 15);
-    //camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    //center = glm::vec3(0, 0, 0);
+    //up = glm::vec3(0, 1, 0);
+    //camera = glm::lookAt(cameraPos, center, up);
 
     //View looking inside from front right corner
-    cameraPos = glm::vec3(7, 6, 7);
-    center = glm::vec3(0, 3, 0);
+    cameraPos = glm::vec3(7, 7, 7);
+    center = glm::vec3(0, 2, 0);
     up = glm::vec3(0, 1, 0);
     camera = glm::lookAt(cameraPos, center, up);
 

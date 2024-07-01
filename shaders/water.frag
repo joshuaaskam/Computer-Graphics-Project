@@ -18,16 +18,10 @@ uniform sampler2D refractionTexture;
 void main() {
     vec2 ndc = (ClipSpace.xy/ClipSpace.w)/2.0 + 0.5;
     vec2 RefractTextCoord = vec2(ndc.x, ndc.y);
-    vec2 ReflectTextCoord = vec2(ndc.x, ndc.y);
+    vec2 ReflectTextCoord = vec2(ndc.x, -ndc.y);
 
     vec4 reflectColor = texture(reflectionTexture, ReflectTextCoord);
     vec4 refractionColor = texture(refractionTexture, RefractTextCoord);
 
-    vec4 color = mix(reflectColor, refractionColor, 0.5);
-    if(color.r == 0.0 && color.g == 0.0 && color.b == 0) {
-        FragColor = vec4(0.65f, 0.8f, 0.92f, 1.0);
-    }
-    else {
-        FragColor = mix(reflectColor, refractionColor, 0.5);
-    }
+    FragColor = mix(reflectColor, refractionColor, 0.5);
 }
