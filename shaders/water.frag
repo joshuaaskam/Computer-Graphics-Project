@@ -18,5 +18,11 @@ void main() {
     vec4 reflectColor = texture(reflectionTexture, TexCoord);
     vec4 refractionColor = texture(refractionTexture, TexCoord);
 
-    FragColor = mix(reflectColor, refractionColor, 0.5);
+    vec4 color = mix(reflectColor, refractionColor, 0.5);
+    if(color.r == 0.0 && color.g == 0.0 && color.b == 0) {
+        FragColor = vec4(0.65f, 0.8f, 0.92f, 1.0);
+    }
+    else {
+        FragColor = mix(reflectColor, refractionColor, 0.5);
+    }
 }

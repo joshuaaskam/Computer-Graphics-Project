@@ -188,16 +188,16 @@ Scene lifeOfPi() {
 	return scene;
 }
 
-Scene water(WaterFrameBuffers waterFrameBuffers) {
+Scene water(uint32_t reflectionId, uint32_t refractionID) {
     Scene scene{waterShader()};
     std::vector<Texture> textures = {
-            Texture{waterFrameBuffers.getReflectionTexture(), "reflectionTexture"},
-            Texture{waterFrameBuffers.getRefractionTexture(), "refractionTexture"},
+            Texture{reflectionId, "reflectionTexture"},
+            Texture{refractionID, "refractionTexture"},
     };
     auto water = Mesh3D::square({});
     auto lake = Object3D(std::vector<Mesh3D>{water});
     lake.rotate(glm::vec3(-M_PI/2, 0, 0));
-    lake.grow(glm::vec3(11, 11, 11));
+    lake.grow(glm::vec3(9, 9, 1));
     scene.objects.push_back(lake);
 
     return scene;
@@ -282,8 +282,8 @@ int main() {
 
     // Initialize scene objects.
 	auto myScene = lake();
-    WaterFrameBuffers fbos = WaterFrameBuffers();
-    auto lake = water(fbos);
+    //WaterFrameBuffers fbos = WaterFrameBuffers();
+    //auto lake = water(fbos);
     // You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
@@ -297,12 +297,14 @@ int main() {
     glm::vec3 up = glm::vec3(0, 0, -1);
     glm::mat4 camera = glm::lookAt(cameraPos, center, up);
     // flat view outside lake
-    //glm::vec3 cameraPos = glm::vec3(0, 0.5, 15);
-    //glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    //cameraPos = glm::vec3(0, 0.5, 15);
+    //camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
     //View looking inside from front right corner
-    //glm::vec3 cameraPos = glm::vec3(7, 6, 7);
-    //glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 3, 0), glm::vec3(0, 1, 0));
+    cameraPos = glm::vec3(7, 6, 7);
+    center = glm::vec3(0, 3, 0);
+    up = glm::vec3(0, 1, 0);
+    camera = glm::lookAt(cameraPos, center, up);
 
     glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 	myScene.program.setUniform("view", camera);
@@ -314,6 +316,49 @@ int main() {
     myScene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
     myScene.program.setUniform("material", glm::vec4(0.1, 1, 1, 10));
 
+    /*lake.program.activate();
+    lake.program.setUniform("view", camera);
+    lake.program.setUniform("projection", perspective);
+    lake.program.setUniform("viewPos", cameraPos);*/
+
+    myScene.program.activate();
+
+    //WaterFrameBuffers fbos = WaterFrameBuffers();
+
+    // Generate and bind a custom framebuffer.
+    uint32_t myFbo1;
+    glGenFramebuffers(1, &myFbo1);
+    glBindFramebuffer(GL_FRAMEBUFFER, myFbo1);
+
+    uint32_t reflectionBufferId;
+    glGenTextures(1, &reflectionBufferId);
+    glBindTexture(GL_TEXTURE_2D, reflectionBufferId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1200, 800, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
+// Render commands will no longer render to the screen.
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+// Generate and bind a custom framebuffer.
+    /*uint32_t myFbo2;
+    glGenFramebuffers(1, &myFbo2);
+    glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
+// Render commands will no longer render to the screen.
+
+    uint32_t refractionBufferId;
+    glGenTextures(1, &refractionBufferId);
+    glBindTexture(GL_TEXTURE_2D, refractionBufferId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1200, 800, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, refractionBufferId, 0);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) // SOMETHING WRONG HERE!
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;*/
+
+    auto lake = water(reflectionBufferId, reflectionBufferId);
+
     lake.program.activate();
     lake.program.setUniform("view", camera);
     lake.program.setUniform("projection", perspective);
@@ -321,7 +366,10 @@ int main() {
 
     myScene.program.activate();
 
-    //WaterFrameBuffers fbos = WaterFrameBuffers();
+
+// Bind the two textures as the write-destinations for color and depth.
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, refractionBufferId, 0);
 
     // Ready, set, go!
 	bool running = true;
@@ -358,9 +406,13 @@ int main() {
         glEnable(GL_CLIP_DISTANCE0);
         // Will not have visual changes, just renders to the frame buffer
         // Render reflection texture
-        fbos.bindReflectionFrameBuffer();
+        //fbos.bindReflectionFrameBuffer();
+        glBindFramebuffer(GL_FRAMEBUFFER, myFbo1);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
         float distance = 2 * cameraPos.y;
-        cameraPos.y -= distance; // change the camera position to be below the water
+        //cameraPos.y -= distance; // change the camera position to be below the water
         camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
         myScene.program.setUniform("plane", glm::vec4(0, 1, 0, 0));
         myScene.program.setUniform("view", camera);
@@ -368,18 +420,21 @@ int main() {
             o.render(myScene.program);
         }
         // Undo the camera position change
-        cameraPos.y += distance;
+        //cameraPos.y += distance;
         camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
         myScene.program.setUniform("view", camera);
 
         // Render refraction texture
-        fbos.bindRefractionFrameBuffer();
-        myScene.program.setUniform("plane", glm::vec4(0, -1, 0, 0));
-        for (auto& o : myScene.objects) {
-            o.render(myScene.program);
-        }
+        //fbos.bindRefractionFrameBuffer();
+        //glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, refractionBufferId, 0);
+        //myScene.program.setUniform("plane", glm::vec4(0, -1, 0, 0));
+        //for (auto& o : myScene.objects) {
+        //    o.render(myScene.program);
+        //}
 
-        fbos.unbindCurrentFrameBuffer(); // switch back to default frame buffer
+        //fbos.unbindCurrentFrameBuffer(); // switch back to default frame buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Render the scene objects.
         glDisable(GL_CLIP_DISTANCE0);
@@ -389,8 +444,9 @@ int main() {
 
         // Render the water
         lake.program.activate();
-        //lake.program.setUniform("reflectionTexture", 0);
-        //glActiveTexture(GL_TEXTURE0);
+        lake.program.setUniform("reflectionTexture", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, reflectionBufferId);
         //glBindTexture(GL_TEXTURE_2D, fbos.getReflectionTexture());
         //lake.program.setUniform("refractionTexture", 1);
         //glActiveTexture(GL_TEXTURE1);
