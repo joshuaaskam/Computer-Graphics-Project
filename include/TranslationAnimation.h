@@ -27,7 +27,7 @@ public:
      * @brief Constructs a animation of a constant rotation by the given total rotation
      * angle, linearly interpolated across the given duration.
      */
-    TranslationAnimation(Object3D& object, float duration, const glm::vec3& totalRotation) :
-            Animation(object, duration), m_perSecond(totalRotation / duration) {}
+    TranslationAnimation(Object3D& object, float duration, const glm::vec3& totalTranslation) :
+            Animation(object, duration), m_perSecond(totalTranslation / duration) {}
 };
 

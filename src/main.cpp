@@ -197,7 +197,8 @@ Scene water(uint32_t reflectionId, uint32_t refractionID) {
     auto water = Mesh3D::square({});
     auto lake = Object3D(std::vector<Mesh3D>{water});
     lake.rotate(glm::vec3(-M_PI/2, 0, 0));
-    lake.grow(glm::vec3(9, 9, 1));
+    lake.move(glm::vec3(0.5, 0, 0.1));
+    lake.grow(glm::vec3(7.6, 8.8, 1));
     scene.objects.push_back(lake);
 
     return scene;
@@ -240,9 +241,14 @@ Scene lake() {
     scene.objects.push_back(std::move(lakeBottom));
 
     auto tree = assimpLoad("models/tree/scene.gltf", true);
-    tree.move(glm::vec3(-4, 3.5, -4));
-    //tree.grow(glm::vec3(3, 3, 3));
+    tree.move(glm::vec3(-4, 3, -4));
     scene.objects.push_back(std::move(tree));
+
+    auto torch = assimpLoad("models/torch/scene.gltf", true);
+    //torch.grow(glm::vec3(3, 3, 3));
+    torch.move(glm::vec3(0, 1, -4));
+    torch.rotate(glm::vec3(M_PI/4, 0, 0));
+    scene.objects.push_back(std::move(torch));
 
     return scene;
 }
@@ -251,15 +257,15 @@ Scene bass() {
     Scene scene{ phongLightingShader() };
 
     auto bass = assimpLoad("models/bass/scene.gltf", true);
-    bass.grow(glm::vec3(9, 9, 9));
-    bass.move(glm::vec3(0, 0, -10));
+    bass.grow(glm::vec3(4, 4, 4));
+    bass.move(glm::vec3(0, -0.5, 0));
 
     scene.objects.push_back(std::move(bass));
 
-    Animator moveBass;
+    /*Animator moveBass;
     moveBass.addAnimation(std::make_unique<TranslationAnimation>(scene.objects[0], 5.0, glm::vec3(0, 0, 12)));
 
-    scene.animators.push_back(std::move(moveBass));
+    scene.animators.push_back(std::move(moveBass));*/
 
     return scene;
 }
@@ -285,7 +291,10 @@ int main() {
     // You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
-	// Activate the shader program.
+    auto bassScene = bass();
+
+
+    // Activate the shader program.
 	myScene.program.activate();
 
 	// Set up the view and projection matrices.
@@ -300,11 +309,23 @@ int main() {
     //up = glm::vec3(0, 1, 0);
     //camera = glm::lookAt(cameraPos, center, up);
 
-    //View looking inside from front right corner
-    cameraPos = glm::vec3(7, 7, 7);
-    center = glm::vec3(0, 2, 0);
+    // flat view above lake
+    cameraPos = glm::vec3(3, 2, 5);
+    center = glm::vec3(0, 0, 0);
     up = glm::vec3(0, 1, 0);
     camera = glm::lookAt(cameraPos, center, up);
+
+    // flat view below lake
+    //cameraPos = glm::vec3(0, -0.5, 4);
+    //center = glm::vec3(0, 0, 0);
+    //up = glm::vec3(0, 1, 0);
+    //camera = glm::lookAt(cameraPos, center, up);
+
+    //View looking inside from front right corner
+    //cameraPos = glm::vec3(7, 7, 7);
+    //center = glm::vec3(0, 2, 0);
+    //up = glm::vec3(0, 1, 0);
+    //camera = glm::lookAt(cameraPos, center, up);
 
     glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 	myScene.program.setUniform("view", camera);
@@ -314,16 +335,33 @@ int main() {
     myScene.program.setUniform("directionalLight", glm::vec3(0, -1, 0));
     myScene.program.setUniform("directionalColor", glm::vec3(1, 1, 1));
     myScene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
-    myScene.program.setUniform("material", glm::vec4(0.1, 1, 1, 10));
+    myScene.program.setUniform("material", glm::vec4(0.3, 0.7, 1, 24));
+    myScene.program.setUniform("light.position", glm::vec3(0, 1, -4));
+    myScene.program.setUniform("light.ambient", glm::vec3(1, 0.84, 0.69));
+    myScene.program.setUniform("light.diffuse", glm::vec3(1, 0.84, 0.69));
+    myScene.program.setUniform("light.specular", glm::vec3(1, 0.84, 0.69));
+    myScene.program.setUniform("light.constant", 1.0f);
+    myScene.program.setUniform("light.linear", 0.7f);
+    myScene.program.setUniform("light.quadratic", 1.8f);
 
-    /*lake.program.activate();
-    lake.program.setUniform("view", camera);
-    lake.program.setUniform("projection", perspective);
-    lake.program.setUniform("viewPos", cameraPos);*/
 
-    myScene.program.activate();
+    bassScene.program.activate();
+    bassScene.program.setUniform("view", camera);
+    bassScene.program.setUniform("projection", perspective);
+    bassScene.program.setUniform("cameraPos", cameraPos); // I don't know where this is used
+    bassScene.program.setUniform("viewPos", cameraPos);
+    bassScene.program.setUniform("directionalLight", glm::vec3(0, -1, 0));
+    bassScene.program.setUniform("directionalColor", glm::vec3(1, 1, 1));
+    bassScene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
+    bassScene.program.setUniform("material", glm::vec4(0.3, 0.7, 1, 24));
+    bassScene.program.setUniform("light.position", glm::vec3(0, 1, -4));
+    bassScene.program.setUniform("light.ambient", glm::vec3(1, 0.84, 0.69));
+    bassScene.program.setUniform("light.diffuse", glm::vec3(1, 0.84, 0.69));
+    bassScene.program.setUniform("light.specular", glm::vec3(1, 0.84, 0.69));
+    bassScene.program.setUniform("light.constant", 1.0f);
+    bassScene.program.setUniform("light.linear", 0.7f);
+    bassScene.program.setUniform("light.quadratic", 1.8f);
 
-    //WaterFrameBuffers fbos = WaterFrameBuffers();
 
     // Generate and bind a custom framebuffer.
     uint32_t myFbo1;
@@ -367,11 +405,6 @@ int main() {
 
     myScene.program.activate();
 
-
-// Bind the two textures as the write-destinations for color and depth.
-    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
-    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, refractionBufferId, 0);
-
     // Ready, set, go!
 	bool running = true;
 	sf::Clock c;
@@ -392,7 +425,7 @@ int main() {
 		}
 		auto now = c.getElapsedTime();
 		auto diff = now - last;
-		//std::cout << 1 / diff.asSeconds() << " FPS " << std::endl;
+		std::cout << 1 / diff.asSeconds() << " FPS " << std::endl;
 		last = now;
 
 		// Update the scene.
@@ -407,7 +440,6 @@ int main() {
         glEnable(GL_CLIP_DISTANCE0);
         // Will not have visual changes, just renders to the frame buffer
         // Render reflection texture
-        //fbos.bindReflectionFrameBuffer();
         glBindFramebuffer(GL_FRAMEBUFFER, myFbo1);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -420,13 +452,18 @@ int main() {
         for (auto& o : myScene.objects) {
             o.render(myScene.program);
         }
+        bassScene.program.activate();
+        bassScene.program.setUniform("plane", glm::vec4(0, 1, 0, 0));
+        bassScene.program.setUniform("view", camera);
+        bassScene.objects[0].render(bassScene.program);
         // Undo the camera position change
         cameraPos.y += distance;
         camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
+        bassScene.program.setUniform("view", camera);
+        myScene.program.activate();
         myScene.program.setUniform("view", camera);
 
         // Render refraction texture
-        //fbos.bindRefractionFrameBuffer();
         glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractionBufferId, 0);
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -435,28 +472,31 @@ int main() {
         for (auto& o : myScene.objects) {
             o.render(myScene.program);
         }
+        bassScene.program.activate();
+        bassScene.program.setUniform("plane", glm::vec4(0, -1, 0, 0));
+        bassScene.objects[0].render(bassScene.program);
 
-        //fbos.unbindCurrentFrameBuffer(); // switch back to default frame buffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 
 		// Render the scene objects.
         glDisable(GL_CLIP_DISTANCE0);
+        myScene.program.activate();
         for (auto& o : myScene.objects) {
 			o.render(myScene.program);
         }
+        bassScene.program.activate();
+        bassScene.objects[0].render(bassScene.program);
 
         // Render the water
         lake.program.activate();
         lake.program.setUniform("reflectionTexture", 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, reflectionBufferId);
-        //glBindTexture(GL_TEXTURE_2D, fbos.getReflectionTexture());
         lake.program.setUniform("refractionTexture", 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, refractionBufferId);
-        //glBindTexture(GL_TEXTURE_2D, fbos.getRefractionTexture());
         lake.objects[0].render(lake.program);
 
         // reactivate main shader

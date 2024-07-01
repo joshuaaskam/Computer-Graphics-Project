@@ -23,7 +23,20 @@ uniform vec3 ambientColor;
 uniform vec3 directionalLight; // this is the "I" vector, not the "L" vector.
 uniform vec3 directionalColor;
 
+// Point light
+struct Light {
+    vec3 position;
 
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+uniform Light light;
 
 // Location of the camera.
 uniform vec3 viewPos;
@@ -32,6 +45,14 @@ uniform vec3 viewPos;
 void main() {
     // TODO: using the lecture notes, compute ambientIntensity, diffuseIntensity, 
     // and specularIntensity.
+
+    float distance = length(light.position - FragWorldPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+    vec3 ambient  = light.ambient * attenuation;
+    vec3 diffuse  = light.diffuse * attenuation;
+    vec3 specular = light.specular * attenuation;
+
+    vec3 pointLightIntensity = ambient + diffuse + specular;
 
     vec3 ambientIntensity = material.x * ambientColor;
     vec3 diffuseIntensity = vec3(0);
@@ -49,5 +70,5 @@ void main() {
         }
     }
     vec3 lightIntensity = ambientIntensity + diffuseIntensity + specularIntensity;
-    FragColor = vec4(lightIntensity, 1) * texture(baseTexture, TexCoord);
+    FragColor = vec4(lightIntensity + pointLightIntensity, 1) * texture(baseTexture, TexCoord);
 }
