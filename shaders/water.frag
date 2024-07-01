@@ -18,7 +18,7 @@ uniform sampler2D dudvMap;
 
 uniform float moveFactor;
 
-const float waveStrength = 0.005;
+const float waveStrength = 0.01; //0.005
 
 void main() {
     vec2 ndc = (ClipSpace.xy/ClipSpace.w)/2.0 + 0.5;

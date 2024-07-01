@@ -20,7 +20,6 @@ We now transform local space vertices to clip space using uniform matrices in th
 #include "Object3D.h"
 #include "Animator.h"
 #include "ShaderProgram.h"
-#include "Water/WaterFrameBuffers.h"
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Window.hpp>
 
@@ -409,7 +408,7 @@ int main() {
 
     myScene.program.activate();
 
-    const float WAVE_SPEED = 0.00005f;
+    const float WAVE_SPEED = 0.03f;
     float moveFactor = 0.0f;
 
     // Ready, set, go!
@@ -505,7 +504,7 @@ int main() {
 
         // Render the water
         lake.program.activate();
-        moveFactor += WAVE_SPEED * c.getElapsedTime().asSeconds();
+        moveFactor += WAVE_SPEED * diff.asSeconds();
         moveFactor = fmod(moveFactor, 1.0);
         lake.program.setUniform("moveFactor", moveFactor);
         lake.program.setUniform("reflectionTexture", 0);
