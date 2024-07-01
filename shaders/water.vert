@@ -15,12 +15,14 @@ out vec3 Normal;
 out vec3 FragWorldPos;
 out vec4 ClipSpace;
 
+const float tiling = 6.0;
+
 void main() {
     // Transform the vertex position from local space to clip space.
     gl_Position = projection * view * model * vec4(vPosition, 1.0);
     ClipSpace = gl_Position;
     // Pass along the vertex texture coordinate.
-    TexCoord = vTexCoord;
+    TexCoord = vec2(vTexCoord.x/2.0 + 0.5, vTexCoord.y/2.0 + 0.5) * tiling;
     // Transform the vertex normal from local space to world space, using the Normal matrix.
     mat4 normalMatrix = transpose(inverse(model));
     Normal = mat3(normalMatrix) * vNormal;

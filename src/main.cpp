@@ -193,8 +193,9 @@ Scene water(uint32_t reflectionId, uint32_t refractionID) {
     std::vector<Texture> textures = {
             Texture{reflectionId, "reflectionTexture"},
             Texture{refractionID, "refractionTexture"},
+            loadTexture("models/water/waterDUDV.png", "dudvMap")
     };
-    auto water = Mesh3D::square({});
+    auto water = Mesh3D::square({textures});
     auto lake = Object3D(std::vector<Mesh3D>{water});
     lake.rotate(glm::vec3(-M_PI/2, 0, 0));
     lake.move(glm::vec3(0.5, 0, 0.1));
@@ -207,10 +208,6 @@ Scene water(uint32_t reflectionId, uint32_t refractionID) {
 Scene lake() {
     // This scene is more complicated; it has child objects, as well as animators.
     Scene scene{phongLightingShader()};
-
-    std::vector<Texture> textures = {
-            loadTexture("models/lake.jpg", "baseTexture"),
-    };
 
     auto cliff1 = assimpLoad("models/cliff/Cliff.obj", true);
     cliff1.move(glm::vec3(0, -2.5, -5));
@@ -408,8 +405,12 @@ int main() {
     lake.program.setUniform("view", camera);
     lake.program.setUniform("projection", perspective);
     lake.program.setUniform("viewPos", cameraPos);
+    lake.program.setUniform("moveFactor", 0.0f);
 
     myScene.program.activate();
+
+    const float WAVE_SPEED = 0.00005f;
+    float moveFactor = 0.0f;
 
     // Ready, set, go!
 	bool running = true;
@@ -464,8 +465,7 @@ int main() {
         for (auto& o : bassScene.objects) {
             o.render(bassScene.program);
         }
-        //bassScene.objects[0].render(bassScene.program);
-        //bassScene.objects[1].render(bassScene.program);
+
         // Undo the camera position change
         cameraPos.y += distance;
         camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
@@ -487,8 +487,6 @@ int main() {
         for (auto& o : bassScene.objects) {
             o.render(bassScene.program);
         }
-        //bassScene.objects[0].render(bassScene.program);
-        //bassScene.objects[1].render(bassScene.program);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -504,11 +502,12 @@ int main() {
         for (auto& o : bassScene.objects) {
             o.render(bassScene.program);
         }
-        //bassScene.objects[0].render(bassScene.program);
-        //bassScene.objects[1].render(bassScene.program);
 
         // Render the water
         lake.program.activate();
+        moveFactor += WAVE_SPEED * c.getElapsedTime().asSeconds();
+        moveFactor = fmod(moveFactor, 1.0);
+        lake.program.setUniform("moveFactor", moveFactor);
         lake.program.setUniform("reflectionTexture", 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, reflectionBufferId);
