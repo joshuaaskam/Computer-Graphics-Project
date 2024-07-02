@@ -3,6 +3,8 @@
 #include "Animation.h"
 #include "RotationAnimation.h"
 #include "TranslationAnimation.h"
+#include "QuadraticBezierAnimation.h"
+#include "PauseAnimation.h"
 
 class Animator {
 private:

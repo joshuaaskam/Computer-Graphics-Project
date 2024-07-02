@@ -254,7 +254,7 @@ Scene bass() {
 
     auto bass = assimpLoad("models/bass/scene.gltf", true);
     bass.grow(glm::vec3(7, 7, 7));
-    bass.move(glm::vec3(-4, -1, 0));
+    bass.move(glm::vec3(-5, -2, 0));
     bass.rotate(glm::vec3(0, M_PI/2, 0));
     scene.objects.push_back(std::move(bass));
 
@@ -264,10 +264,32 @@ Scene bass() {
     duck.move(glm::vec3(-3, 0, -3));
     scene.objects.push_back(std::move(duck));
 
-    /*Animator moveBass;
-    moveBass.addAnimation(std::make_unique<TranslationAnimation>(scene.objects[0], 5.0, glm::vec3(0, 0, 12)));
+    // Duck slowly moving to center of lake
+    Animator moveDuck;
+    moveDuck.addAnimation(std::make_unique<TranslationAnimation>(scene.objects[1], 10.0, glm::vec3(3, 0, 3)));
+    scene.animators.push_back(std::move(moveDuck));
+    // Bass rotating up to eat duck
+    Animator rotateBass;
+    rotateBass.addAnimation(std::make_unique<PauseAnimation>(scene.objects[0], 7.0));
+    rotateBass.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 3, glm::vec3(0, 0, M_PI/4)));
+    rotateBass.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 1, glm::vec3(0, 0, -M_PI/4)));
+    rotateBass.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 2, glm::vec3(0, 0, -M_PI/4)));
+    rotateBass.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 2, glm::vec3(0, 0, M_PI/4)));
 
-    scene.animators.push_back(std::move(moveBass));*/
+    scene.animators.push_back(std::move(rotateBass));
+    // TODO: Make bass follow a curved path up with acceleration. Also need to make it move and rotate at the same time.
+    Animator quadraticBass;
+    quadraticBass.addAnimation(std::make_unique<PauseAnimation>(scene.objects[0], 5.0));
+    quadraticBass.addAnimation(std::make_unique<QuadraticBezierAnimation>(scene.objects[0], 5.0,
+                                                                          glm::vec3(-5, -2, 0),
+                                                                          glm::vec3(-2, -1.75, 0),
+                                                                          glm::vec3(-0.5, -0.25, 0)));
+    quadraticBass.addAnimation(std::make_unique<QuadraticBezierAnimation>(scene.objects[0], 5.0,
+                                                                          glm::vec3(-0.5, -0.25, 0),
+                                                                          glm::vec3(2, -0.5, 0),
+                                                                          glm::vec3(4, -2, 0)));
+    scene.animators.push_back(std::move(quadraticBass));
+
 
     return scene;
 }
@@ -301,7 +323,7 @@ int main() {
 
 	// Set up the view and projection matrices.
     // Top View
-	glm::vec3 cameraPos = glm::vec3(0, 18, 0);
+	glm::vec3 cameraPos = glm::vec3(0, 18, 1);
     glm::vec3 center = glm::vec3(0, 0, 0);
     glm::vec3 up = glm::vec3(0, 0, -1);
     glm::mat4 camera = glm::lookAt(cameraPos, center, up);
@@ -417,7 +439,7 @@ int main() {
 	auto last = c.getElapsedTime();
 
 	// Start the animators.
-	for (auto& anim : myScene.animators) {
+	for (auto& anim : bassScene.animators) {
 		anim.start();
 	}
     glEnable(GL_CULL_FACE);
@@ -435,7 +457,7 @@ int main() {
 		last = now;
 
 		// Update the scene.
-		for (auto& anim : myScene.animators) {
+		for (auto& anim : bassScene.animators) {
 			anim.tick(diff.asSeconds());
 		}
 
@@ -517,6 +539,13 @@ int main() {
 
         // reactivate main shader
         myScene.program.activate();
+
+        // Remove the duck after 10.0 seconds since it has been eaten by the bass
+        if(c.getElapsedTime().asSeconds() > 10.0){
+            if(bassScene.objects.size() > 1) {
+                bassScene.objects.pop_back();
+            }
+        }
 
 		window.display();
 
