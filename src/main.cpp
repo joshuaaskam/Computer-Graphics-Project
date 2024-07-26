@@ -228,19 +228,19 @@ int main() {
     glm::vec3 center = glm::vec3(0, 0, 0);
     glm::vec3 up = glm::vec3(0, 0, -1);
     glm::mat4 camera = glm::lookAt(cameraPos, center, up);
-    // flat view outside lake
+    // flat view outside waterScene
     //cameraPos = glm::vec3(0, 0.5, 15);
     //center = glm::vec3(0, 0, 0);
     //up = glm::vec3(0, 1, 0);
     //camera = glm::lookAt(cameraPos, center, up);
 
-    // flat view above lake
+    // flat view above waterScene
     cameraPos = glm::vec3(5, 3, 5);
     center = glm::vec3(0, 0, 0);
     up = glm::vec3(0, 1, 0);
     camera = glm::lookAt(cameraPos, center, up);
 
-    // flat view below lake
+    // flat view below waterScene
     //cameraPos = glm::vec3(0, -0.5, 4);
     //center = glm::vec3(0, 0, 0);
     //up = glm::vec3(0, 1, 0);
@@ -255,7 +255,6 @@ int main() {
     glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 	myScene.program.setUniform("view", camera);
 	myScene.program.setUniform("projection", perspective);
-	myScene.program.setUniform("cameraPos", cameraPos); // I don't know where this is used
     myScene.program.setUniform("viewPos", cameraPos);
     myScene.program.setUniform("directionalLight", glm::vec3(0, -1, 0));
     myScene.program.setUniform("directionalColor", glm::vec3(1, 1, 1));
@@ -269,7 +268,7 @@ int main() {
     myScene.program.setUniform("light.linear", 0.7f);
     myScene.program.setUniform("light.quadratic", 1.8f);
 
-    // Generate and bind a custom framebuffer for the water's reflection.
+    // Generate and bind a custom framebuffer for the waterScene's reflection.
     uint32_t myFbo1;
     glGenFramebuffers(1, &myFbo1);
     glBindFramebuffer(GL_FRAMEBUFFER, myFbo1);
@@ -282,7 +281,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
 
-    // Generate and bind a custom framebuffer for the water's refraction.
+    // Generate and bind a custom framebuffer for the waterScene's refraction.
     uint32_t myFbo2;
     glGenFramebuffers(1, &myFbo2);
     glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
@@ -296,17 +295,17 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractionBufferId, 0);
 
-    auto lake = water(reflectionBufferId, refractionBufferId);
+    auto waterScene = water(reflectionBufferId, refractionBufferId);
 
-    lake.program.activate();
-    lake.program.setUniform("view", camera);
-    lake.program.setUniform("projection", perspective);
-    lake.program.setUniform("viewPos", cameraPos);
-    lake.program.setUniform("moveFactor", 0.0f);
+    waterScene.program.activate();
+    waterScene.program.setUniform("view", camera);
+    waterScene.program.setUniform("projection", perspective);
+    waterScene.program.setUniform("viewPos", cameraPos);
+    waterScene.program.setUniform("moveFactor", 0.0f);
 
     myScene.program.activate();
 
-    // Values for calculating the water's wave movement that will be passed to the shader
+    // Values for calculating the waterScene's wave movement that will be passed to the shader
     const float WAVE_SPEED = 0.03f;
     float moveFactor = 0.0f;
 
@@ -350,7 +349,7 @@ int main() {
         glBindFramebuffer(GL_FRAMEBUFFER, myFbo1);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
         float distance = 2 * cameraPos.y;
-        cameraPos.y -= distance; // change the camera position to be below the water
+        cameraPos.y -= distance; // change the camera position to be below the waterScene
         camera = glm::lookAt(cameraPos, center, up);
         myScene.program.setUniform("plane", glm::vec4(0, 1, 0, 0));
         myScene.program.setUniform("view", camera);
@@ -390,18 +389,18 @@ int main() {
             o.render(bassScene.program);
         }
 
-        // Render the water
-        lake.program.activate();
+        // Render the waterScene
+        waterScene.program.activate();
         moveFactor += WAVE_SPEED * diff.asSeconds();
         moveFactor = fmod(moveFactor, 1.0);
-        lake.program.setUniform("moveFactor", moveFactor);
-        lake.program.setUniform("reflectionTexture", 0);
+        waterScene.program.setUniform("moveFactor", moveFactor);
+        waterScene.program.setUniform("reflectionTexture", 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, reflectionBufferId);
-        lake.program.setUniform("refractionTexture", 1);
+        waterScene.program.setUniform("refractionTexture", 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, refractionBufferId);
-        lake.objects[0].render(lake.program);
+        waterScene.objects[0].render(waterScene.program);
 
         // reactivate main shader
         myScene.program.activate();
