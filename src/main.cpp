@@ -154,8 +154,8 @@ Scene lake() {
 /**
  * @brief Constructs a scene of a bass swimming up to eat a duck.
  */
-Scene bass() {
-    Scene scene{ phongLightingShader() };
+Scene bass(ShaderProgram shaderProgram) {
+    Scene scene{ shaderProgram };
 
     auto bass = assimpLoad("models/bass/scene.gltf", true);
     bass.grow(glm::vec3(7, 7, 7));
@@ -219,7 +219,7 @@ int main() {
     // You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
-    auto bassScene = bass();
+    auto bassScene = bass(myScene.program);
 
 
     // Activate the shader program.
@@ -272,25 +272,6 @@ int main() {
     myScene.program.setUniform("light.linear", 0.7f);
     myScene.program.setUniform("light.quadratic", 1.8f);
 
-
-    bassScene.program.activate();
-    bassScene.program.setUniform("view", camera);
-    bassScene.program.setUniform("projection", perspective);
-    bassScene.program.setUniform("cameraPos", cameraPos); // I don't know where this is used
-    bassScene.program.setUniform("viewPos", cameraPos);
-    bassScene.program.setUniform("directionalLight", glm::vec3(0, -1, 0));
-    bassScene.program.setUniform("directionalColor", glm::vec3(1, 1, 1));
-    bassScene.program.setUniform("ambientColor", glm::vec3(1, 1, 1));
-    bassScene.program.setUniform("material", glm::vec4(0.3, 0.7, 1, 24));
-    bassScene.program.setUniform("light.position", glm::vec3(0, 1, -4));
-    bassScene.program.setUniform("light.ambient", glm::vec3(1, 0.84, 0.69));
-    bassScene.program.setUniform("light.diffuse", glm::vec3(1, 0.84, 0.69));
-    bassScene.program.setUniform("light.specular", glm::vec3(1, 0.84, 0.69));
-    bassScene.program.setUniform("light.constant", 1.0f);
-    bassScene.program.setUniform("light.linear", 0.7f);
-    bassScene.program.setUniform("light.quadratic", 1.8f);
-
-
     // Generate and bind a custom framebuffer.
     uint32_t myFbo1;
     glGenFramebuffers(1, &myFbo1);
@@ -303,13 +284,13 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
-// Render commands will no longer render to the screen.
+    // Render commands will no longer render to the screen.
 
-// Generate and bind a custom framebuffer.
+    // Generate and bind a custom framebuffer.
     uint32_t myFbo2;
     glGenFramebuffers(1, &myFbo2);
     glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
-// Render commands will no longer render to the screen.
+    // Render commands will no longer render to the screen.
 
     uint32_t refractionBufferId;
     glGenTextures(1, &refractionBufferId);
@@ -341,6 +322,7 @@ int main() {
 	for (auto& anim : bassScene.animators) {
 		anim.start();
 	}
+
     glEnable(GL_CULL_FACE);
 	while (running) {
 		
@@ -371,24 +353,19 @@ int main() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
         float distance = 2 * cameraPos.y;
         cameraPos.y -= distance; // change the camera position to be below the water
-        camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
+        camera = glm::lookAt(cameraPos, center, up);
         myScene.program.setUniform("plane", glm::vec4(0, 1, 0, 0));
         myScene.program.setUniform("view", camera);
         for (auto& o : myScene.objects) {
             o.render(myScene.program);
         }
-        bassScene.program.activate();
-        bassScene.program.setUniform("plane", glm::vec4(0, 1, 0, 0));
-        bassScene.program.setUniform("view", camera);
         for (auto& o : bassScene.objects) {
             o.render(bassScene.program);
         }
 
         // Undo the camera position change
         cameraPos.y += distance;
-        camera = glm::lookAt(cameraPos, center, up); // The view that is rendered is what will be reflected
-        bassScene.program.setUniform("view", camera);
-        myScene.program.activate();
+        camera = glm::lookAt(cameraPos, center, up);
         myScene.program.setUniform("view", camera);
 
         // Render refraction texture
@@ -398,8 +375,6 @@ int main() {
         for (auto& o : myScene.objects) {
             o.render(myScene.program);
         }
-        bassScene.program.activate();
-        bassScene.program.setUniform("plane", glm::vec4(0, -1, 0, 0));
         for (auto& o : bassScene.objects) {
             o.render(bassScene.program);
         }
@@ -408,11 +383,9 @@ int main() {
 
 		// Render the scene objects.
         glDisable(GL_CLIP_DISTANCE0);
-        myScene.program.activate();
         for (auto& o : myScene.objects) {
 			o.render(myScene.program);
         }
-        bassScene.program.activate();
         for (auto& o : bassScene.objects) {
             o.render(bassScene.program);
         }
@@ -441,9 +414,6 @@ int main() {
         }
 
 		window.display();
-
-
-		
 	}
 
 	return 0;
