@@ -9,10 +9,12 @@ uniform mat4 view;
 uniform mat4 model;
 uniform vec4 plane;
 uniform vec3 viewPos;
+uniform vec3 lightPos;
 
 out vec2 TexCoord;
 out vec4 ClipSpace;
 out vec3 toCameraVector;
+out vec3 fromLightVector;
 
 const float tiling = 6.0;
 
@@ -26,6 +28,8 @@ void main() {
     TexCoord = vec2(vTexCoord.x/2.0 + 0.5, vTexCoord.y/2.0 + 0.5) * tiling;
 
     toCameraVector = viewPos - worldPos.xyz;
+
+    fromLightVector = worldPos.xyz - lightPos;
 
     gl_ClipDistance[0] = dot(model * vec4(vPosition, 1.0), plane);
 }

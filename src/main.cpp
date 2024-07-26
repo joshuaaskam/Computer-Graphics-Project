@@ -92,7 +92,8 @@ Scene water(uint32_t reflectionId, uint32_t refractionID) {
     std::vector<Texture> textures = {
             Texture{reflectionId, "reflectionTexture"},
             Texture{refractionID, "refractionTexture"},
-            loadTexture("models/water/waterDUDV.png", "dudvMap")
+            loadTexture("models/water/waterDUDV.png", "dudvMap"),
+            loadTexture("models/water/normalMap.png", "normalMap"),
     };
     auto water = Mesh3D::square({textures});
     auto lake = Object3D(std::vector<Mesh3D>{water});
@@ -302,6 +303,9 @@ int main() {
     waterScene.program.setUniform("projection", perspective);
     waterScene.program.setUniform("viewPos", cameraPos);
     waterScene.program.setUniform("moveFactor", 0.0f);
+    waterScene.program.setUniform("lightPos", glm::vec3(0, 1, -4));
+    waterScene.program.setUniform("lightColor", glm::vec3(1, 0.84, 0.69));
+
 
     myScene.program.activate();
 
