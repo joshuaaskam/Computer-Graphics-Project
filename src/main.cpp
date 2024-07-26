@@ -306,11 +306,10 @@ int main() {
     waterScene.program.setUniform("lightPos", glm::vec3(0, 1, -4));
     waterScene.program.setUniform("lightColor", glm::vec3(1, 0.84, 0.69));
 
-
     myScene.program.activate();
 
     // Values for calculating the waterScene's wave movement that will be passed to the shader
-    const float WAVE_SPEED = 0.03f;
+    const float WAVE_SPEED = 0.02f;
     float moveFactor = 0.0f;
 
     // Ready, set, go!

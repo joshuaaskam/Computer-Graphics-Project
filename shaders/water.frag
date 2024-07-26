@@ -14,9 +14,9 @@ uniform sampler2D normalMap;
 uniform float moveFactor;
 uniform vec3 lightColor;
 
-const float waveStrength = 0.01;
+const float waveStrength = 0.04;
 const float shineDamper = 20.0;
-const float reflectivity = 0.6;
+const float reflectivity = 0.5;
 
 void main() {
     vec2 ndc = (ClipSpace.xy/ClipSpace.w)/2.0 + 0.5;

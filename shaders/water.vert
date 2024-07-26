@@ -16,7 +16,7 @@ out vec4 ClipSpace;
 out vec3 toCameraVector;
 out vec3 fromLightVector;
 
-const float tiling = 6.0;
+const float tiling = 4.0;
 
 void main() {
     // Transform the vertex position from local space to clip space.
