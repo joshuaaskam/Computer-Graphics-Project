@@ -60,6 +60,9 @@ ShaderProgram texturingShader() {
 	return shader;
 }
 
+/**
+ * @brief Constructs a shader program for the water.
+ */
 ShaderProgram waterShader() {
     ShaderProgram shader;
     try {
@@ -81,6 +84,9 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 	return Texture::loadImage(i, samplerName);
 }
 
+/**
+ * @brief Constructs a flat square with a water shader.
+ */
 Scene water(uint32_t reflectionId, uint32_t refractionID) {
     Scene scene{waterShader()};
     std::vector<Texture> textures = {
@@ -98,8 +104,10 @@ Scene water(uint32_t reflectionId, uint32_t refractionID) {
     return scene;
 }
 
+/**
+ * @brief Constructs a scene of a lake surrounded by cliffs. Does include the water plane.
+ */
 Scene lake() {
-    // This scene is more complicated; it has child objects, as well as animators.
     Scene scene{phongLightingShader()};
 
     auto cliff1 = assimpLoad("models/cliff/Cliff.obj", true);
@@ -143,6 +151,9 @@ Scene lake() {
     return scene;
 }
 
+/**
+ * @brief Constructs a scene of a bass swimming up to eat a duck.
+ */
 Scene bass() {
     Scene scene{ phongLightingShader() };
 
@@ -171,7 +182,6 @@ Scene bass() {
     rotateBass.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 2, glm::vec3(0, 0, M_PI/4)));
 
     scene.animators.push_back(std::move(rotateBass));
-    // TODO: Make bass follow a curved path up with acceleration. Also need to make it move and rotate at the same time.
     Animator quadraticBass;
     quadraticBass.addAnimation(std::make_unique<PauseAnimation>(scene.objects[0], 5.0));
     quadraticBass.addAnimation(std::make_unique<QuadraticBezierAnimation>(scene.objects[0], 5.0,
