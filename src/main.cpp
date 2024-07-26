@@ -216,11 +216,8 @@ int main() {
 
     // Initialize scene objects.
 	auto myScene = lake();
-    // You can directly access specific objects in the scene using references.
-	auto& firstObject = myScene.objects[0];
 
     auto bassScene = bass(myScene.program);
-
 
     // Activate the shader program.
 	myScene.program.activate();
@@ -272,7 +269,7 @@ int main() {
     myScene.program.setUniform("light.linear", 0.7f);
     myScene.program.setUniform("light.quadratic", 1.8f);
 
-    // Generate and bind a custom framebuffer.
+    // Generate and bind a custom framebuffer for the water's reflection.
     uint32_t myFbo1;
     glGenFramebuffers(1, &myFbo1);
     glBindFramebuffer(GL_FRAMEBUFFER, myFbo1);
@@ -284,9 +281,8 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
-    // Render commands will no longer render to the screen.
 
-    // Generate and bind a custom framebuffer.
+    // Generate and bind a custom framebuffer for the water's refraction.
     uint32_t myFbo2;
     glGenFramebuffers(1, &myFbo2);
     glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
@@ -310,6 +306,7 @@ int main() {
 
     myScene.program.activate();
 
+    // Values for calculating the water's wave movement that will be passed to the shader
     const float WAVE_SPEED = 0.03f;
     float moveFactor = 0.0f;
 
@@ -347,7 +344,8 @@ int main() {
         glClearColor(0.65f, 0.8f, 0.92f, 1.0f); // set the background to sky color
 
         glEnable(GL_CLIP_DISTANCE0);
-        // Will not have visual changes, just renders to the frame buffer
+        // First render:
+        // Will render to the screen, just renders to the frame buffer
         // Render reflection texture
         glBindFramebuffer(GL_FRAMEBUFFER, myFbo1);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionBufferId, 0);
@@ -368,6 +366,7 @@ int main() {
         camera = glm::lookAt(cameraPos, center, up);
         myScene.program.setUniform("view", camera);
 
+        // Second render:
         // Render refraction texture
         glBindFramebuffer(GL_FRAMEBUFFER, myFbo2);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractionBufferId, 0);
@@ -379,6 +378,7 @@ int main() {
             o.render(bassScene.program);
         }
 
+        // Switch back to the default framebuffer. Scene will now render to the display.
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Render the scene objects.

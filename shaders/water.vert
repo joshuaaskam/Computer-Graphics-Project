@@ -1,6 +1,4 @@
 #version 330
-// A vertex shader for rendering vertices with normal vectors and texture coordinates,
-// which creates outputs needed for a Phong reflection fragment shader.
 layout (location=0) in vec3 vPosition;
 layout (location=1) in vec3 vNormal;
 layout (location=2) in vec2 vTexCoord;
@@ -11,8 +9,6 @@ uniform mat4 model;
 uniform vec4 plane;
 
 out vec2 TexCoord;
-out vec3 Normal;
-out vec3 FragWorldPos;
 out vec4 ClipSpace;
 
 const float tiling = 6.0;
@@ -23,12 +19,6 @@ void main() {
     ClipSpace = gl_Position;
     // Pass along the vertex texture coordinate.
     TexCoord = vec2(vTexCoord.x/2.0 + 0.5, vTexCoord.y/2.0 + 0.5) * tiling;
-    // Transform the vertex normal from local space to world space, using the Normal matrix.
-    mat4 normalMatrix = transpose(inverse(model));
-    Normal = mat3(normalMatrix) * vNormal;
-
-    // TODO: transform the vertex position into world space, and assign it to FragWorldPos.
-    FragWorldPos = vec3(model * vec4(vPosition, 1.0));
 
     gl_ClipDistance[0] = dot(model * vec4(vPosition, 1.0), plane);
 }
